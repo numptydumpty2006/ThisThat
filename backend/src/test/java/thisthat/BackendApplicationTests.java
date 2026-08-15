@@ -1,4 +1,4 @@
-package com.this.that;
+package thisthat.this.that;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
