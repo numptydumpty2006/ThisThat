@@ -1,0 +1,48 @@
+name: this-and-that
+
+# Local development infrastructure for the Cafe Finder project.
+# Brings up PostgreSQL and Redis only — the Spring Boot and Vue apps
+# are run on the host so you get fast refresh / HMR during development.
+#
+# Usage:
+#   docker compose up -d              # start
+#   docker compose down              # stop
+#   docker compose down -v           # stop and WIPE volumes (full reset)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cafe-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cafe_finder}
+      POSTGRES_USER: ${POSTGRES_USER:-cafe_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cafe_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - cafe_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cafe_user} -d ${POSTGRES_DB:-cafe_finder}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: cafe-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - cafe_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  cafe_postgres_data:
+  cafe_redis_data:
